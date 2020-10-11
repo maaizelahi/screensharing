@@ -102,7 +102,7 @@ const ScreenShare = (props) => {
     return (
         <div>
             <div id="video-grid"></div>
-            {screenId && !viewer && <h3 className="teal">{`Video Url:  http://localhost:3000/screenshare/${screenId}`}</h3>}
+            {screenId && !viewer && <h3 className="teal">{`Video Url:  http://localhost:3000/videoshare/${screenId}`}</h3>}
         </div>
     );
 };
