@@ -11,8 +11,8 @@ function App() {
             <Route path="/" exact component={Main} />
             <Route path="/screenshare" exact component={ScreenShare} />
             <Route path="/screenshare/:id" component={ScreenShare} />
-            <Route path="/videoshare/" component={VideoShare} />
-            <Route path="/videoshare/:id" exact component={VideoShare} />
+            <Route path="/videoshare/" exact component={VideoShare} />
+            <Route path="/videoshare/:id" component={VideoShare} />
         </Router>
     );
 }

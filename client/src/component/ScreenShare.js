@@ -5,23 +5,21 @@ import axios from "axios";
 
 let socket; // stores current socket instance
 let myPeer; // stores current instance of peer
-let viewer = false; // Keeps track whether user is sharing screen or viewing screen
 const peers = {}; // Keeps track of all peer connections
-// let screenId; // Maintains unique screenId
+let screenId; // Maintains unique screenId
 const ENDPOINT = "http://localhost:4000";
 
 const ScreenShare = (props) => {
-    const [screenId, setScreenId] = useState("");
-    // const [peers, setPeers] = useState([]);
+    const [screen, setScreen] = useState(); // Used to display the screen url
+    const [viewer, setViewer] = useState(false); // Keeps track whether user is sharing screen or viewing screen
+
+    // Checking if the user is sharing screen or viewing screen
+    if (props.match.params.id && !viewer) {
+        setViewer(true);
+        screenId = props.match.params.id;
+    }
 
     useEffect(() => {
-        // Checking if the user is sharing screen or viewing screen
-        if (props.match.params.id) {
-            viewer = true;
-            // screenId = props.match.params.id;
-            setScreenId(props.match.params.id);
-        }
-
         // Establishing socket connection
         socket = socketIOClient("localhost:4000");
 
@@ -46,15 +44,11 @@ const ScreenShare = (props) => {
         } else {
             // For the user who wants to share screen, diplay the screen share dialogue
             navigator.mediaDevices.getDisplayMedia().then((stream) => {
-                // Get unique screenid from server, user who wants to view this screen needs to subscribe to the channel whose id is screenId
-                getScreenId();
-
+                setScreen(screenId);
                 // Listen for new user connection
                 socket.on("user-connected", (userId) => {
-                    console.log("All");
                     // When new user is connected, send the stream
                     if (!viewer) {
-                        console.log("Sharer");
                         connectToNewUser(userId, stream);
                     }
                 });
@@ -68,10 +62,12 @@ const ScreenShare = (props) => {
         });
 
         // Establish connected with peer server to get the unique peer id
-        myPeer.on("open", (id) => {
+        myPeer.on("open", async (id) => {
             let isSharing = "false";
             if (!viewer) {
                 isSharing = "true";
+                // Get unique screenid from server, user who wants to view this screen needs to subscribe to the channel whose id is screenId
+                await getScreenId();
             }
             socket.emit("join", { screenId, userId: id, isSharing });
         });
@@ -80,9 +76,7 @@ const ScreenShare = (props) => {
     // Gets unique screenId from server
     const getScreenId = async () => {
         const { data } = await axios(`${ENDPOINT}/screenId`);
-        // screenId = data;
-        setScreenId(data);
-        console.log("ScreenId:", data);
+        screenId = data;
     };
 
     // Calls the new user and sends the media stream
@@ -106,7 +100,7 @@ const ScreenShare = (props) => {
     return (
         <div>
             <div id="video-grid"></div>
-            {screenId && !viewer && <h3 className="teal">{`Screen Url:  http://localhost:3000/screenshare/${screenId}`}</h3>}
+            {screen && !viewer && <h3 className="teal">{`Screen Url:  http://localhost:3000/screenshare/${screen}`}</h3>}
         </div>
     );
 };

@@ -21,8 +21,8 @@ io.on("connection", (socket) => {
         // Join the screen
         socket.join(screenId);
         // If the user is not the one sharing the screen
+
         if (isSharing !== "true") {
-            // let sharingObj: any = sharing.find((x) => x.screenId == screenId);
             socket.to(screenId).broadcast.emit("user-connected", userId);
         }
 
