@@ -4,7 +4,12 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "test": "jest --watchAll --no-cache",
     "start": "ts-node-dev src/index.ts"
+  },
+  "jest": {
+    "preset": "ts-jest",
+    "testEnvironment": "node"
   },
   "keywords": [],
   "author": "",

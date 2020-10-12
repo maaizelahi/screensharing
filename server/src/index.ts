@@ -1,8 +1,7 @@
 import express, { Request, Response } from "express";
 import cors from "cors";
 import socket from "socket.io";
-
-import { generateToken } from "./helper";
+import { screenRouter } from "./routes";
 
 // Starting http server and socketio
 const PORT = process.env.PORT || 4000;
@@ -12,47 +11,23 @@ const server = app.listen(PORT, () => {
 });
 const io = socket(server);
 
-interface SharingDictionary {
-    token: string;
-    userId: string;
-    socketId: string;
-}
-
-// Keep the dictionary of user who is sharing the screen/video along with his socket Id and sceenId
-let sharing: SharingDictionary[] = [];
-
 app.use(cors());
+app.use(screenRouter);
 
 // Listening for socket connections
 io.on("connection", (socket) => {
-    socket.on("join", ({ token, userId, isSharing }, callback) => {
-        let sourceUserId;
-        socket.join(token);
+    // Join used with userId to screen with screenId
+    socket.on("join", ({ screenId, userId, isSharing }, callback) => {
+        // Join the screen
+        socket.join(screenId);
+        // If the user is not the one sharing the screen
         if (isSharing !== "true") {
-            // TODO: fix this
-            let sharingObj: any = sharing.find((x) => x.token == token);
-            if (sharingObj) {
-                sourceUserId = sharingObj.userId;
-                socket.to(token).broadcast.emit("user-connected", userId);
-            }
-        } else {
-            // Add user to dictionary
-            let newSceenSharing: SharingDictionary;
-            newSceenSharing = {
-                socketId: socket.id,
-                token,
-                userId,
-            };
-            sharing.push(newSceenSharing);
+            // let sharingObj: any = sharing.find((x) => x.screenId == screenId);
+            socket.to(screenId).broadcast.emit("user-connected", userId);
         }
 
         socket.on("disconnect", () => {
-            socket.to(token).broadcast.emit("user-disconnected", userId);
+            socket.to(screenId).broadcast.emit("user-disconnected", userId);
         });
     });
-});
-
-app.get("/token", async (req: Request, res: Response) => {
-    const token = generateToken();
-    res.send(token);
 });
